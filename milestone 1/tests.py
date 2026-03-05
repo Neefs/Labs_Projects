@@ -43,14 +43,49 @@ class StudentTests(unittest.TestCase):
     def test_init(self):
         t_id = "STU12345"
         t_name = "Student_25"
-        s = Student(t_id,t_name)
+        s = Student(t_id, t_name)
         
-        self.assertEqual(s.student_id,t_id)
-        self.assertEqual(s.name,t_name)
+        self.assertEqual(s.student_id, t_id)
+        self.assertEqual(s.name, t_name)
         
     def test_enroll(self):
+        '''Tests if student is enrolled'''
         s = Student("STU12345","Student_25")
         c = Course("CSE1010", 3)
+        s.enroll(c,"A")
+        
+        self.assertIn(c, s.courses)
+        self.assertEqual(s.courses[c], "A")
+        
+        self.assertIn(s, c.students)
+        self.assertEqual(c.get_student_count(), 1)
+        
+        
+    def test_gpa(self):
+        '''Tests to make sure gpa calculation'''
+        s = Student("STU12345","Student_25")
+        c1 = Course("CSE1010", 3)
+        c2 = Course("MATH010", 4)
+        
+        s.enroll(c1,"A")
+        s.enroll(c2,"B")
+        
+        self.assertAlmostEqual(s.calculate_gpa(), 3.43, places=2)
+        
+    def test_get_courses(self):
+        '''tests getting student courses'''
+        s = Student("STU12345", "Student_25")
+        c1 = Course("CSE1010", 3)
+        c2 = Course("CSE2050", 3)
+        
+        s.enroll(c1, "A")
+        s.enroll(c2, "B")
+        
+        course_list = s.get_courses()
+        self.assertEqual(len(course_list), 2)
+        self.assertIn(c1, course_list)
+        self.assertIn(c2, course_list)
+
 
 
 
