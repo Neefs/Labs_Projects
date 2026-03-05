@@ -19,6 +19,6 @@
 ## Loading from CSV
 As a requirement of this lab we had to load the univerity data from a csv. You can do this by doing:
 ```py
-u = Univerity.from_csv("the/path/to/univeristiydata.csv", "the/path/to/course_catalog.csb")
+u = Univerity.from_csv("the/path/to/univeristiydata.csv", "the/path/to/course_catalog.csv")
 ```
 This uses a classmethod to create the univerity class already populated.
