@@ -1,50 +1,29 @@
-l = [1, 2 , 4 , 5, 7, 6, 2, 3]
-s = set(l)
-
-print (l, s)
-s.add(100)
-s.add(56)
-print (l, s)
-l2 = list(sorted(s))
-print(l2)
-
-p = l
-
-p.append("help")
-
-print(p != l )
-
-d = id([1, 2])
-c = id([1, 2])
-
-
-
-x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-
-y = x[10:]
-z = x[:2]
-print(y, z)
-
-
-x = "2"
-y = x
-y+="3"
-x+="3"
-print(y is x, y==x)
-
-
-x = ["mutable"]
-y = x
-y.pop(0)
-print(y is x, y==x)
-
-y = 'buzz'
+def fewest_coins(amt, coins, solved=dict()):
+    """Returns the minimum amount of coins needed to make amt"""
+    # Base case: we've solved this problem already
+    if amt in solved: return solved.get(amt)
  
-def hello_goodbye(x):
-  if len(x) > len(y):
-    print('hello', end=' ')
+    # Base case: we can make this amount with 1 coin
+    elif amt in coins:
+        solved.setdefault(amt, 1)
+        return solved.get(amt)
  
-  else:
-    print('goodbye')
+    solved.setdefault(amt, float('inf'))
  
-hello_goodbye('fizzbuzz')
+    # Explore every coin from here, find minimum
+    for coin in coins:
+        if coin < amt:
+            n_branch = 1 + fewest_coins(amt-coin, coins, solved)
+            
+            if n_branch < solved.get(amt):
+                solved.pop(amt)
+                solved.setdefault(amt, n_branch)
+ 
+    return solved.get(amt)
+ 
+L1 = list((1, 5, 10, 25))
+L2 = list((1, 5, 10, 20, 25))
+ 
+n1 = fewest_coins(40, L1)
+n2 = fewest_coins(40, L2)
+print(n1, n2)

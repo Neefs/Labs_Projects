@@ -1,0 +1,25 @@
+Course:
+    - name
+    - capacity
+    - waitlist
+        - Queue ADT (Nodes, head, tail, size) (enqueue, dequeue, peek, isEmpty)
+    - refactor to take EnrollmentRecord instead of student
+    - enroll (student, date)
+        - Ignore already enrolled students
+        - If full, add to waitlist
+        - Else, add EnrollmentRecord to the list of enrolled students
+    - drop (student, replacement_date (optional))
+        - If student is enrolled, remove them from the list of enrolled students
+            - Use recursive binary search to find the student in the list of enrolled students 
+                (when self.sorted_by is not "id")
+        - If waitlist is not empty, enroll the next student in the waitlist with the replacement_date (or current date if not provided)
+    - sort_enrolled(by=["name", "id", "date"], algorithm=["two", "sorts"])
+        - Sort the list of enrolled students based on the specified attribute and algorithm
+        - store by in self.sorted_by
+
+EnrollmentRecord:
+    - student (object)
+    - self.date (datetime or "yyyy-mm-dd")
+
+Tests:
+    - Later
