@@ -1,4 +1,6 @@
-from utils import GRADE_POINTS, check_valid_grade
+from datetime import datetime
+
+from utils import *
 
 
 class Student:
@@ -47,16 +49,29 @@ class Student:
             print(f"{course.course_code}\t{grade}\t{course.credits}")
         
 
-    
+class EnrollmentRecord:
+    def __init__(self, student: Student, date: datetime | str = datetime.now()):
+        self.student = student
+        self.date = datetime.fromisoformat(date) if type(date) == str else date
+
+
+
 
     
 class Course:
-    '''Luke'''
-    def __init__(self, course_code:str, credits:int):
+    '''Luke + Gio'''
+    def __init__(self, course_code:str, name:str, credits:int, department:str, capacity: int):
         '''Initialize'''
         self.course_code = course_code
         self.credits = int(credits) #makes sure it is int (Raises Error if not)
-        self.students = []
+
+        self.enrollmentRecords: list[EnrollmentRecord] = []
+        self.name: str = name
+        self.department:str = department
+        self.capacity:int = capacity
+        self.sortedBy: CourseSortedBy | None = None
+
+        self.waitlist = None #Add a waitlist object here.
         pass
 
     def add_student(self,student:Student):
@@ -64,7 +79,12 @@ class Course:
         if student in self.students:
             raise ValueError("Student already in class.")
         self.students.append(student)
-        
+
+    def enroll(self, student:Student, enroll_date:datetime | str = datetime.now()):
+        if any(er.student == student for er in self.enrollmentRecords):
+            return 
+        if len(self.enrollmentRecords) < self.capacity:
+            self.enrollmentRecords.append(EnrollmentRecord(student, enroll_date))
 
     def get_student_count(self) -> int:
         '''returns length of student list'''
@@ -153,4 +173,52 @@ class University:
 
         
     pass
-  
+
+
+class WaitlistNode:
+    def __init__(self, student: Student):
+        self.student = student
+        self.next: WaitlistNode | None = None
+
+
+class Waitlist:
+    def __init__(self):
+        self._head: WaitlistNode = None
+        self._tail: WaitlistNode = None
+        self._len: int = 0
+
+
+    def __len__(self):
+        return self._len
+    
+    def is_empty(self):
+        return self._head == None and self._tail == None and self._len == 0
+    
+    def enqueue(self, student:Student):
+        node = WaitlistNode(student)
+        
+        print(self.is_empty())
+        if self.is_empty():
+            self._head = node 
+            self._tail = node
+            self._len += 1
+            print("Enqued single")
+            return
+        self._tail.next = node
+        self._tail = node
+        self._len += 1
+
+    def dequeue(self):
+        if self.is_empty():
+            raise ValueError("The Queue is empty")
+        print("false", self._head, self._tail, self._len)
+        ret = self._head
+        if len(self) <= 1:
+            self._head = None
+            self._tail = None
+        else:
+            self._head = self._head.next
+        self._len -= 1
+        return ret.student
+
+
