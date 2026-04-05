@@ -71,7 +71,7 @@ class Course:
         self.capacity:int = capacity
         self.sortedBy: CourseSortedBy | None = None
 
-        self.waitlist = None #Add a waitlist object here.
+        self.waitlist = Waitlist() #Add a waitlist object here.
         pass
 
     def add_student(self,student:Student):
@@ -80,11 +80,45 @@ class Course:
             raise ValueError("Student already in class.")
         self.students.append(student)
 
-    def enroll(self, student:Student, enroll_date:datetime | str = datetime.now()):
+    def enroll(self, student:Student, enroll_date:datetime | str = None):
         if any(er.student == student for er in self.enrollmentRecords):
             return 
         if len(self.enrollmentRecords) < self.capacity:
+            if not enroll_date:
+                enroll_date = datetime.now()
             self.enrollmentRecords.append(EnrollmentRecord(student, enroll_date))
+            self.sortedBy = None #Adding the student breaks the sort so we set this to None
+        else:
+            self.waitlist.enqueue(student)
+        # TODO: Return something here to tell if they were added to the waitlist or the course.
+    
+    def drop(self, student_id:str, enroll_date:datetime=None):
+        if self.sortedBy != CourseSortedBy.ID:
+            raise LookupError("Data has to be sorted by ID to drop this student.")
+            # Possibly auto sort here
+            
+        dropped_student = er_binary_serach(self.enrollmentRecords, student_id)
+        if dropped_student is False:
+            raise ValueError("Student could not be found.")
+        self.enrollmentRecords.remove(dropped_student)
+        if not self.waitlist.is_empty():
+            new_student = self.waitlist.dequeue()
+            if enroll_date is None: enroll_date = datetime.now()
+            self.enrollmentRecords.append(EnrollmentRecord(new_student, enroll_date))
+            # TODO: Sort data here so it stays sorted by id
+            self.sortedBy = None
+
+    class algorithms(Enum):
+        MERGE = "s"
+        QUICK = "s"
+
+    def sort_enrolled(self, by: CourseSortedBy, algorithm: algorithms):
+        pass
+            
+
+
+
+
 
     def get_student_count(self) -> int:
         '''returns length of student list'''
