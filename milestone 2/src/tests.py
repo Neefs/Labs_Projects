@@ -40,6 +40,7 @@ class CourseTests(unittest.TestCase):
 
         
 class StudentTests(unittest.TestCase):
+    """Luke"""
     def test_init(self):
         t_id = "STU12345"
         t_name = "Student_25"

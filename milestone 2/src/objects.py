@@ -1,6 +1,7 @@
 from datetime import datetime
-
+from typing import Literal
 from utils import *
+import time
 
 
 class Student:
@@ -72,13 +73,7 @@ class Course:
         self.sortedBy: CourseSortedBy | None = None
 
         self.waitlist = Waitlist() #Add a waitlist object here.
-        pass
 
-    def add_student(self,student:Student):
-        '''Adds student to list'''
-        if student in self.students:
-            raise ValueError("Student already in class.")
-        self.students.append(student)
 
     def enroll(self, student:Student, enroll_date:datetime | str = None):
         if any(er.student == student for er in self.enrollmentRecords):
@@ -93,27 +88,36 @@ class Course:
         # TODO: Return something here to tell if they were added to the waitlist or the course.
     
     def drop(self, student_id:str, enroll_date:datetime=None):
-        if self.sortedBy != CourseSortedBy.ID:
-            raise LookupError("Data has to be sorted by ID to drop this student.")
+        if not (self.sortedBy is CourseSortedBy.ID):
+            self.sort_enrolled(CourseSortedBy.ID)
+            print("EnrollmentRecords are now sorted by ID to complete the drop.")
+            #raise LookupError("Data has to be sorted by ID to drop this student.")
             # Possibly auto sort here
             
-        dropped_student = er_binary_serach(self.enrollmentRecords, student_id)
+        dropped_student = recursive_binary_search(self.enrollmentRecords, student_id)
         if dropped_student is False:
             raise ValueError("Student could not be found.")
         self.enrollmentRecords.remove(dropped_student)
         if not self.waitlist.is_empty():
-            new_student = self.waitlist.dequeue()
+            new_student = self.waitlist.dequeue() 
             if enroll_date is None: enroll_date = datetime.now()
             self.enrollmentRecords.append(EnrollmentRecord(new_student, enroll_date))
-            # TODO: Sort data here so it stays sorted by id
-            self.sortedBy = None
+            self.sort_enrolled(self.sortedBy) # Sorts by ID again
+            #sortedBy will always be CourseSortedBy.ID at this point.
 
-    class algorithms(Enum):
-        MERGE = "s"
-        QUICK = "s"
+    
 
-    def sort_enrolled(self, by: CourseSortedBy, algorithm: algorithms):
-        pass
+    def sort_enrolled(self, by: CourseSortedBy, algorithm: Algorithms = Algorithms.INSERTION):
+        """Automaticly uses insertion because it is more efficient"""
+        # Use (by is CourseSortedBy.ID) to see which one was called
+        algorithm(self.enrollmentRecords, by) #Algorithms is an enum with the value being the function it is named after
+        #since we store it as bubble_sort and not bubble_sort() we can call it.
+        self.sortedBy = by
+        #set sortedby
+        
+
+
+    
             
 
 
@@ -256,3 +260,17 @@ class Waitlist:
         return ret.student
 
 
+
+
+if __name__ == "__main__":
+    students = [EnrollmentRecord(Student("STU00001","James"), ),EnrollmentRecord(Student("STU00002", "Gio")), EnrollmentRecord(Student("STU00003","Luke"))]
+    time.sleep(3)
+    students.append(EnrollmentRecord(Student("STU00004","yerp"), datetime.now()))
+    sort = insertion_sort
+    sort(students, CourseSortedBy.NAME)
+    print([s.student.name for s in students])
+    sort(students, CourseSortedBy.DATE)
+    sort(students, CourseSortedBy.NAME)
+    print([s.date for s in students])
+    sort(students, CourseSortedBy.ID)
+    print([s.student.student_id for s in students])
