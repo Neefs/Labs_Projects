@@ -23,6 +23,7 @@ class CourseSortedBy(Enum):
     
 
 def bubble_sort(arr, by: CourseSortedBy):
+    """sorting algorithm Luke"""
     n = len(arr)
     # Outer loop for number of passes
     for i in range(n):
@@ -41,24 +42,35 @@ def bubble_sort(arr, by: CourseSortedBy):
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
 
 def insertion_sort(arr, by: CourseSortedBy):
+    """sorting algorithm Luke"""
     n = len(arr)
 
-    for i in range(n):
-        j = n - i - 1
-        while (j < n - 1 \
-                and (arr[j].student.name > arr[j+1].student.name\
-                     if by is CourseSortedBy.NAME\
-                        else arr[j].student.student_id > arr[j+1].student.student_id\
-                            if by is CourseSortedBy.ID else\
-                                arr[j].date > arr[j+1].date)):
-            arr[j],arr[j+1] = arr[j+1], arr[j]
-        j +=1
+    for i in range(1, n):
+        key = arr[i]
+        j = i - 1
+
+        while j >= 0:
+            if by is CourseSortedBy.NAME:
+                should_shift = arr[j].student.name > key.student.name
+            elif by is CourseSortedBy.ID:
+                should_shift = arr[j].student.student_id > key.student.student_id
+            else:
+                should_shift = arr[j].date > key.date
+
+            if not should_shift:
+                break
+
+            arr[j + 1] = arr[j]
+            j -= 1
+
+        arr[j + 1] = key
             
 class Algorithms(Enum):
     BUBBLE = bubble_sort
     INSERTION = insertion_sort
 
 def recursive_binary_search(l, target):
+    """Gio """
     if l == []:
         return False
     return _erbs(l, target, 0, len(l))
@@ -66,12 +78,12 @@ def recursive_binary_search(l, target):
 
 def _erbs(l, target: str, left: int, right: int) -> any | False: #Student instead of any (cant bc of circular input)
     """
-    Returns Student object
+    Returns EnrollmentRecord object
+    Gio
     """
     if left >= right:
         return False
     median = (left + right) // 2
-    print(l[median].student.student_id)
     if l[median].student.student_id == target:
         return l[median]
     if target < l[median].student.student_id:

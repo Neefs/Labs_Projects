@@ -24,16 +24,36 @@ class BSTNode:
 
     # TODO: Uncomment this, so Python knows how to print out Nodes
     def __repr__(self):
-        #return f"BSTNode(key={self.key})"
-        pass
+        return f"BSTNode(key={self.key})"
   
 
     # TODO: implement the 3 methods below. pre_order and post_order will be similar to in_order
-    def put(self, key): pass
+    def put(self, key): 
+        if key < self.key:
+            if self.left is None:
+                self.left = BSTNode(key)
+            else:
+                self.left.put(key)
+        elif key > self.key:
+            if self.right is None:
+                self.right = BSTNode(key)
+            else:
+                self.right.put(key)
+        return self
 
-    def pre_order(self): pass
+    def pre_order(self): 
+        yield self.key
+        if self.left is not None:
+            yield from self.left.pre_order()
+        if self.right is not None:
+            yield from self.right.pre_order()
 
-    def post_order(self): pass
+    def post_order(self): 
+        if self.left is not None:
+            yield from self.left.post_order()
+        if self.right is not None:
+            yield from self.right.post_order()
+        yield self.key
 
     
 

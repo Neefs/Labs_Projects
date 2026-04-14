@@ -1,0 +1,18 @@
+Luke and Gio 
+
+For both enqueue and dequeue, the Big-O time complexity in the linked list is O(1). 
+This is because we didnt do the regular approach of just adding and removing, our code 
+has both a head and a tail to keep track of where we need to call enqueue or dequeue. This
+makes for no recursion or traversal to raise our Big-O time complexity from O(1).
+
+For our sorting algorithms, we chose to use bubble sort and insertion sort. These both have a 
+worst case of O(n^2), an average of O(N^2), but the best case for bubble is O(n^2) while insertion 
+has a best case of O(n). Insertion sort would be better in a small, sorted, or almost sorted list 
+because of the time complexity and effiency. Bubble sort works better with larger or more complex 
+sorting but both get the job done. 
+
+The Big-O time complexity for the recursive binary search is O(logn). Sorting is required for this
+search to be correct because everything must be in order for how the code works. There is no point 
+in finding the median and other important parts of the code if they are our of order. 
+
+

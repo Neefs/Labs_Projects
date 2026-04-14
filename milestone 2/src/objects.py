@@ -14,10 +14,11 @@ class Student:
 
     def enroll(self, course:Course, grade:str):
         """Enrolls a student into the class. Adds self to courses students"""
-        if not check_valid_grade(grade):
+        if (grade is not None) and not check_valid_grade(grade):
+            #Allows for in progress classes now
             raise AttributeError("Grade has to be a valid grade type.")
         self.courses[course] = grade
-        course.add_student(self)
+        course.enroll(self)
 
     def update_grade(self, course:Course, grade:str):
         """Updates the student grade. Throws error if grade is not valid"""
@@ -35,6 +36,8 @@ class Student:
         if len(self.get_courses()) == 0:
             return 0
         for course, grade in self.courses.items():
+            if grade is None:
+                continue #Skips active courses
             course:Course #Typehint for IDE
             total_grade_points += (GRADE_POINTS[grade]*float(course.credits))
             total_credits += course.credits
@@ -51,9 +54,9 @@ class Student:
         
 
 class EnrollmentRecord:
-    def __init__(self, student: Student, date: datetime | str = datetime.now()):
+    def __init__(self, student: Student, date: datetime | str = None):
         self.student = student
-        self.date = datetime.fromisoformat(date) if type(date) == str else date
+        self.date = datetime.fromisoformat(date) if type(date) == str else datetime.now()
 
 
 
@@ -76,6 +79,7 @@ class Course:
 
 
     def enroll(self, student:Student, enroll_date:datetime | str = None):
+        """enrolls student to class or waitlist"""
         if any(er.student == student for er in self.enrollmentRecords):
             return 
         if len(self.enrollmentRecords) < self.capacity:
@@ -84,10 +88,14 @@ class Course:
             self.enrollmentRecords.append(EnrollmentRecord(student, enroll_date))
             self.sortedBy = None #Adding the student breaks the sort so we set this to None
         else:
+            if self.waitlist.is_queued(student):
+                raise ValueError("Cannot add duplicate student to the waitlist.")
             self.waitlist.enqueue(student)
         # TODO: Return something here to tell if they were added to the waitlist or the course.
     
     def drop(self, student_id:str, enroll_date:datetime=None):
+        """drops student from enrollment"""
+        # returns dropped student, and waitlisted student if there is one in a tuple
         if not (self.sortedBy is CourseSortedBy.ID):
             self.sort_enrolled(CourseSortedBy.ID)
             print("EnrollmentRecords are now sorted by ID to complete the drop.")
@@ -104,6 +112,8 @@ class Course:
             self.enrollmentRecords.append(EnrollmentRecord(new_student, enroll_date))
             self.sort_enrolled(self.sortedBy) # Sorts by ID again
             #sortedBy will always be CourseSortedBy.ID at this point.
+            return (dropped_student.student, new_student)
+        return (dropped_student.student,) # comma to keep as tuple
 
     
 
@@ -126,7 +136,7 @@ class Course:
 
     def get_student_count(self) -> int:
         '''returns length of student list'''
-        return len(self.students)
+        return len(self.enrollmentRecords)
         
 
 class University: 
@@ -136,10 +146,10 @@ class University:
         self.courses = {}
         self.students = {}
     
-    def add_course(self,course_code, credits):
+    def add_course(self,course_code:str, name:str, credits:int, department:str, capacity:int):
         '''checks if course exsits, adds it and returns course object'''
         if course_code not in self.courses:
-            self.courses[course_code] = Course(course_code,credits)
+            self.courses[course_code] = Course(course_code, name, credits, department, capacity)
         return self.courses[course_code]
         
     def add_student(self,student_id, name) -> Student | None:
@@ -152,7 +162,7 @@ class University:
         """returns student object associated with student id"""
         return self.students.get(student_id)
         
-    def get_course(self,course_code):
+    def get_course(self,course_code) -> Course | None:
         """returns the course object associated with the course code"""
         return self.courses.get(course_code)
         
@@ -195,18 +205,33 @@ class University:
         course_catalog = cls._load_csv(course_catalog_path)
 
         for c in course_catalog:
-            ret.add_course(c[0], c[1])
+            try:
+                ret.add_course(c[0], c[1], int(c[2]), c[3], int(c[4]))
+            except ValueError:
+                # Changing the message
+                raise ValueError("Credits and capacity have to be an integer.")
+        
+        for student_id, course_id, term, grade, attempt in univerity_data:
+            s = ret.add_student(student_id, "Not provided")
+            c = ret.get_course(course_id)
+            if not c:
+                raise ValueError(f"Course '{course_id}' could not be found")
+            print("i"+grade+"i")
+            s.enroll(c, None if grade == "" else grade)
 
-        for l in univerity_data:
-            s = ret.add_student(l[0], l[1])
-            # course, grade in student_info[2]
-            for i in l[2].split(";"):
-                i = i.split(":")
-                course = ret.get_course(i[0])
-                if course is not None:
-                    s.enroll(course, i[1])
-                else:
-                    print(f"Failed to enroll {s.name} in {course.course_code}")
+
+        # for l in univerity_data:
+        #     s = ret.add_student(l[0], l[1])
+        #     # course, grade in student_info[2]
+        #     for i in l[2].split(";"):
+        #         i = i.split(":")
+        #         course = ret.get_course(i[0])
+        #         if course is not None:
+        #             s.enroll(course, i[1])
+        #         else:
+        #             print(f"Failed to enroll {s.name} in {course.course_code}")
+        
+        
         return ret
 
         
@@ -220,36 +245,50 @@ class WaitlistNode:
 
 
 class Waitlist:
+    """Gio"""
     def __init__(self):
+        """initialize"""
         self._head: WaitlistNode = None
         self._tail: WaitlistNode = None
         self._len: int = 0
 
 
     def __len__(self):
+        """returns length"""
         return self._len
     
+    def is_queued(self, student:Student):
+        """checks if it is queued"""
+        t = self._head
+        while (t is not None):
+            if t.student == student:
+                return True
+            t = t.next
+        return False
+
+    
     def is_empty(self):
+        """checks if empty"""
         return self._head == None and self._tail == None and self._len == 0
     
     def enqueue(self, student:Student):
+        """enque method"""
         node = WaitlistNode(student)
         
-        print(self.is_empty())
+
         if self.is_empty():
             self._head = node 
             self._tail = node
             self._len += 1
-            print("Enqued single")
             return
         self._tail.next = node
         self._tail = node
         self._len += 1
 
     def dequeue(self):
+        """dequeue method"""
         if self.is_empty():
             raise ValueError("The Queue is empty")
-        print("false", self._head, self._tail, self._len)
         ret = self._head
         if len(self) <= 1:
             self._head = None
