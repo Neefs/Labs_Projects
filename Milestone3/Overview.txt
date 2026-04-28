@@ -1,0 +1,7 @@
+Course:
+- add prerequisites as hash map
+- set sorting algs to merge and quick
+
+Tests
+
+Complexity Report
